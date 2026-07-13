@@ -54,8 +54,9 @@
             background-color: #fff;
             color: #ff4d6d;
             border: 2px solid #ff4d6d;
-            /* Важно для перемещения */
             position: relative; 
+            /* Отключаем случайные ложные срабатывания на смартфонах */
+            touch-action: none; 
         }
         .final-screen {
             display: none;
@@ -79,12 +80,13 @@
 </head>
 <body>
 
-    <!-- Коробка с вопросом -->
+    <!-- Экран с вопросом -->
     <div class="container" id="questBox">
         <h1>Ты меня любишь? 🥺</h1>
         <div class="buttons-wrapper">
             <button class="btn" id="yesBtn" onclick="sayYes()">Да!</button>
-            <button class="btn" id="noBtn" onmouseover="runAway()" ontouchstart="runAway()">Нет</button>
+            <!-- Добавили event в аргументы функций, чтобы полностью контролировать касание -->
+            <button class="btn" id="noBtn" onmouseover="runAway(event)" ontouchstart="runAway(event)" onclick="preventDefaults(event)">Нет</button>
         </div>
     </div>
 
@@ -95,7 +97,6 @@
     </div>
 
     <script>
-        // Инициализация Telegram
         try {
             window.Telegram.WebApp.ready();
             window.Telegram.WebApp.expand();
@@ -107,34 +108,40 @@
         const questBox = document.getElementById('questBox');
         const finalBox = document.getElementById('finalBox');
 
-        // Функция убегания кнопки
-        function runAway() {
-            // Переключаем в абсолютное позиционирование при первом же шухере
+        function preventDefaults(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            return false;
+        }
+
+        function runAway(e) {
+            // Мгновенно останавливаем любые дальнейшие действия браузера (включая клик)
+            if (e) {
+                e.preventDefault();
+                e.stopPropagation();
+            }
+
             if (noBtn.style.position !== 'absolute') {
                 noBtn.style.position = 'absolute';
             }
             
-            // Вычисляем случайные координаты по всему экрану телефона
-            const width = window.innerWidth - 100;
-            const height = window.innerHeight - 100;
+            // Расчет случайных координат с учетом безопасных зон
+            const width = window.innerWidth - noBtn.offsetWidth - 20;
+            const height = window.innerHeight - noBtn.offsetHeight - 20;
             
-            const randomX = Math.floor(Math.random() * width) + 10;
-            const randomY = Math.floor(Math.random() * height) + 10;
+            const randomX = Math.floor(Math.random() * Math.max(10, width)) + 10;
+            const randomY = Math.floor(Math.random() * Math.max(10, height)) + 10;
             
             noBtn.style.left = randomX + 'px';
             noBtn.style.top = randomY + 'px';
         }
 
-        // Функция клика на "Да"
         function sayYes() {
             questBox.style.display = 'none';
             finalBox.style.display = 'block';
-            
-            // Запускаем фонтан сердечек
             setInterval(createHeart, 200);
         }
 
-        // Создание летающих сердечек
         function createHeart() {
             const heart = document.createElement('div');
             heart.classList.add('heart');
@@ -147,7 +154,6 @@
             
             document.body.appendChild(heart);
             
-            // Анимация полета вверх через JS, чтобы точно сработало везде
             let position = window.innerHeight;
             const speed = Math.random() * 4 + 3;
             
