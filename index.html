@@ -3,8 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Подарок для тебя</title>
-    <!-- Подключаем скрипт Telegram, чтобы страница понимала, что она внутри приложения -->
+    <title>Вопросик</title>
     <script src="https://telegram.org"></script>
     <style>
         body {
@@ -19,70 +18,181 @@
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             overflow: hidden;
             user-select: none;
+            position: relative;
         }
+
+        /* Контейнер для квеста */
+        .container {
+            text-align: center;
+            background: rgba(255, 255, 255, 0.7);
+            padding: 30px;
+            border-radius: 20px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 10px 30px rgba(255, 77, 109, 0.15);
+            max-width: 80%;
+            transition: all 0.5s ease;
+        }
+
         h1 {
             color: #ff4d6d;
-            font-size: 24px;
-            text-align: center;
-            animation: heartbeat 1.5s infinite;
+            font-size: 26px;
+            margin-bottom: 30px;
         }
+
+        .buttons-wrapper {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            position: relative;
+            height: 60px;
+            align-items: center;
+        }
+
         .btn {
-            background-color: #ff4d6d;
-            color: white;
             border: none;
-            padding: 15px 30px;
+            padding: 12px 28px;
             font-size: 18px;
             border-radius: 25px;
             cursor: pointer;
-            box-shadow: 0 4px 15px rgba(255, 77, 109, 0.4);
-            transition: transform 0.2s;
+            font-weight: bold;
+            transition: transform 0.1s;
         }
+
         .btn:active { transform: scale(0.95); }
+
+        #yesBtn {
+            background-color: #ff4d6d;
+            color: white;
+            box-shadow: 0 4px 15px rgba(255, 77, 109, 0.4);
+        }
+
+        #noBtn {
+            background-color: #fff;
+            color: #ff4d6d;
+            border: 2px solid #ff4d6d;
+            position: absolute;
+            transition: left 0.2s ease, top 0.2s ease;
+        }
+
+        /* Стили для финального экрана */
+        .final-screen {
+            display: none;
+            text-align: center;
+            animation: fadeIn 0.8s ease forwards;
+        }
+
+        .big-heart {
+            font-size: 80px;
+            animation: heartbeat 1.2s infinite;
+            margin-bottom: 20px;
+        }
+
+        .final-text {
+            color: #ff4d6d;
+            font-size: 28px;
+            font-weight: bold;
+        }
+
         @keyframes heartbeat {
             0% { transform: scale(1); }
-            20% { transform: scale(1.1); }
-            40% { transform: scale(1); }
+            30% { transform: scale(1.15); }
+            60% { transform: scale(1); }
         }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: scale(0.8); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        /* Вылетающие маленькие сердечки */
         .heart {
             position: absolute;
             font-size: 24px;
-            animation: floatUp 1s ease-out forwards;
+            animation: floatUp 1.2s ease-out forwards;
             pointer-events: none;
         }
+
         @keyframes floatUp {
             0% { transform: translateY(0) scale(1); opacity: 1; }
-            100% { transform: translateY(-100px) scale(1.5); opacity: 0; }
+            100% { transform: translateY(-120px) scale(1.5); opacity: 0; }
         }
     </style>
 </head>
 <body>
 
-    <h1>Нажми на кнопку, чтобы открыть подарок 💖</h1>
-    <button class="btn" onclick="createHearts(event)">Открыть!</button>
+    <!-- Экран с вопросом -->
+    <div class="container" id="questBox">
+        <h1 id="question">Ты меня любишь? 🥺</h1>
+        <div class="buttons-wrapper">
+            <button class="btn" id="yesBtn" onclick="sayYes(event)">Да!</button>
+            <button class="btn" id="noBtn" onmouseover="runAway()" onclick="runAway()" ontouchstart="runAway(event)">Нет</button>
+        </div>
+    </div>
+
+    <!-- Финальный экран любви -->
+    <div class="final-screen" id="finalBox">
+        <div class="big-heart">💖</div>
+        <div class="final-text">Я тебя тоже очень сильно люблю! 🥰</div>
+    </div>
 
     <script>
-        // Инициализируем Telegram Web App
         const tg = window.Telegram.WebApp;
         tg.ready();
-        tg.expand(); // Разворачивает приложение на весь экран
+        tg.expand();
 
-        function createHearts(event) {
-            for (let i = 0; i < 10; i++) {
-                const heart = document.createElement('div');
-                heart.classList.add('heart');
-                heart.innerText = '❤️';
+        const noBtn = document.getElementById('noBtn');
+        const questBox = document.getElementById('questBox');
+        const finalBox = document.getElementById('finalBox');
 
-                // Случайное смещение вокруг кнопки
-                const offsetLeft = (Math.random() - 0.5) * 100;
-                const offsetTop = (Math.random() - 0.5) * 100;
-
-                heart.style.left = (event.clientX + offsetLeft) + 'px';
-                heart.style.top = (event.clientY + offsetTop) + 'px';
-
-                document.body.appendChild(heart);
-
-                setTimeout(() => { heart.remove(); }, 1000);
+        // Функция, которая заставляет кнопку "Нет" убегать
+        function runAway(event) {
+            if (event) {
+                event.preventDefault(); // Защита от случайного нажатия на смартфонах
             }
+
+            // Получаем размеры экрана, оставляя небольшие отступы по краям
+            const padding = 40;
+            const maxX = window.innerWidth - noBtn.offsetWidth - padding;
+            const maxY = window.innerHeight - noBtn.offsetHeight - padding;
+
+            // Генерируем случайные координаты, избегая краев экрана
+            const randomX = Math.max(padding, Math.floor(Math.random() * maxX));
+            const randomY = Math.max(padding, Math.floor(Math.random() * maxY));
+
+            // Перемещаем кнопку абсолютно по всему экрану
+            noBtn.style.left = randomX + 'px';
+            noBtn.style.top = randomY + 'px';
+        }
+
+        // Функция при нажатии на "Да"
+        function sayYes(event) {
+            // Прячем коробку с вопросом
+            questBox.style.display = 'none';
+            // Показываем финальное поздравление
+            finalBox.style.display = 'block';
+
+            // Запускаем бесконечный фонтан из сердечек
+            setInterval(() => {
+                createHeart();
+            }, 150);
+        }
+
+        // Создание красивых летающих сердечек на фоне
+        function createHeart() {
+            const heart = document.createElement('div');
+            heart.classList.add('heart');
+
+            const emojies = ['❤️', '💖', '💝', '💕', '💗'];
+            heart.innerText = emojies[Math.floor(Math.random() * emojies.length)];
+
+            heart.style.left = Math.random() * window.innerWidth + 'px';
+            heart.style.top = Math.random() * window.innerHeight + 'px';
+
+            document.body.appendChild(heart);
+
+            setTimeout(() => {
+                heart.remove();
+            }, 1200);
         }
     </script>
 </body>
