@@ -12,38 +12,32 @@
             background: linear-gradient(135deg, #ffe5ec, #ffc2d1);
             height: 100vh;
             display: flex;
-            flex-direction: column;
             align-items: center;
             justify-content: center;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: sans-serif;
             overflow: hidden;
             user-select: none;
         }
-
         .container {
             text-align: center;
-            background: rgba(255, 255, 255, 0.7);
+            background: rgba(255, 255, 255, 0.85);
             padding: 30px;
             border-radius: 20px;
-            backdrop-filter: blur(10px);
             box-shadow: 0 10px 30px rgba(255, 77, 109, 0.15);
-            max-width: 80%;
-            width: 300px;
+            width: 280px;
         }
-
         h1 {
             color: #ff4d6d;
-            font-size: 26px;
+            font-size: 24px;
+            margin-top: 0;
             margin-bottom: 30px;
         }
-
-        /* Обычное, ровное расположение кнопок в ряд */
         .buttons-wrapper {
             display: flex;
             justify-content: center;
             gap: 20px;
+            position: relative;
         }
-
         .btn {
             border: none;
             padding: 12px 28px;
@@ -51,137 +45,121 @@
             border-radius: 25px;
             cursor: pointer;
             font-weight: bold;
-            transition: transform 0.1s;
         }
-
-        .btn:active { transform: scale(0.95); }
-
         #yesBtn {
             background-color: #ff4d6d;
             color: white;
-            box-shadow: 0 4px 15px rgba(255, 77, 109, 0.4);
-            z-index: 10;
         }
-
         #noBtn {
             background-color: #fff;
             color: #ff4d6d;
             border: 2px solid #ff4d6d;
-            z-index: 10;
-            /* Плавное перемещение */
-            transition: left 0.15s ease, top 0.15s ease; 
+            /* Важно для перемещения */
+            position: relative; 
         }
-
         .final-screen {
             display: none;
             text-align: center;
-            animation: fadeIn 0.8s ease forwards;
         }
-
         .big-heart {
             font-size: 80px;
-            animation: heartbeat 1.2s infinite;
             margin-bottom: 20px;
         }
-
         .final-text {
             color: #ff4d6d;
-            font-size: 28px;
+            font-size: 26px;
             font-weight: bold;
         }
-
-        @keyframes heartbeat {
-            0% { transform: scale(1); }
-            30% { transform: scale(1.15); }
-            60% { transform: scale(1); }
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: scale(0.8); }
-            to { opacity: 1; transform: scale(1); }
-        }
-
         .heart {
             position: absolute;
             font-size: 24px;
-            animation: floatUp 1.2s ease-out forwards;
             pointer-events: none;
-        }
-
-        @keyframes floatUp {
-            0% { transform: translateY(0) scale(1); opacity: 1; }
-            100% { transform: translateY(-120px) scale(1.5); opacity: 0; }
         }
     </style>
 </head>
 <body>
 
-    <!-- Экран с вопросом -->
+    <!-- Коробка с вопросом -->
     <div class="container" id="questBox">
-        <h1 id="question">Ты меня любишь? 🥺</h1>
+        <h1>Ты меня любишь? 🥺</h1>
         <div class="buttons-wrapper">
-            <button class="btn" id="yesBtn" onclick="sayYes(event)">Да!</button>
-            <button class="btn" id="noBtn" onmouseover="runAway()" ontouchstart="runAway(event)" onclick="runAway()">Нет</button>
+            <button class="btn" id="yesBtn" onclick="sayYes()">Да!</button>
+            <button class="btn" id="noBtn" onmouseover="runAway()" ontouchstart="runAway()">Нет</button>
         </div>
     </div>
 
     <!-- Финальный экран -->
-    <div class="final-screen" id="finalBox">
+    <div class="container final-screen" id="finalBox">
         <div class="big-heart">💖</div>
         <div class="final-text">Я тебя тоже очень сильно люблю! 🥰</div>
     </div>
 
     <script>
-        const tg = window.Telegram.WebApp;
-        tg.ready();
-        tg.expand();
+        // Инициализация Telegram
+        try {
+            window.Telegram.WebApp.ready();
+            window.Telegram.WebApp.expand();
+        } catch(e) {
+            console.log("Запущено вне Telegram");
+        }
 
         const noBtn = document.getElementById('noBtn');
         const questBox = document.getElementById('questBox');
         const finalBox = document.getElementById('finalBox');
 
-        function runAway(event) {
-            if (event) {
-                event.preventDefault(); 
-            }
-            
-            // Включаем абсолютное позиционирование только при попытке нажать
+        // Функция убегания кнопки
+        function runAway() {
+            // Переключаем в абсолютное позиционирование при первом же шухере
             if (noBtn.style.position !== 'absolute') {
                 noBtn.style.position = 'absolute';
             }
             
-            // Расчет безопасных границ экрана, чтобы кнопка не улетала за экран
-            const padding = 30;
-            const maxX = window.innerWidth - noBtn.offsetWidth - padding;
-            const maxY = window.innerHeight - noBtn.offsetHeight - padding;
-
-            const randomX = Math.max(padding, Math.floor(Math.random() * maxX));
-            const randomY = Math.max(padding, Math.floor(Math.random() * maxY));
-
+            // Вычисляем случайные координаты по всему экрану телефона
+            const width = window.innerWidth - 100;
+            const height = window.innerHeight - 100;
+            
+            const randomX = Math.floor(Math.random() * width) + 10;
+            const randomY = Math.floor(Math.random() * height) + 10;
+            
             noBtn.style.left = randomX + 'px';
             noBtn.style.top = randomY + 'px';
         }
 
-        function sayYes(event) {
+        // Функция клика на "Да"
+        function sayYes() {
             questBox.style.display = 'none';
             finalBox.style.display = 'block';
-
-            setInterval(() => {
-                createHeart();
-            }, 150);
+            
+            // Запускаем фонтан сердечек
+            setInterval(createHeart, 200);
         }
 
+        // Создание летающих сердечек
         function createHeart() {
             const heart = document.createElement('div');
             heart.classList.add('heart');
+            
             const emojies = ['❤️', '💖', '💝', '💕', '💗'];
             heart.innerText = emojies[Math.floor(Math.random() * emojies.length)];
             
             heart.style.left = Math.random() * window.innerWidth + 'px';
-            heart.style.top = Math.random() * window.innerHeight + 'px';
+            heart.style.top = window.innerHeight + 'px';
             
             document.body.appendChild(heart);
-            setTimeout(() => { heart.remove(); }, 1200);
+            
+            // Анимация полета вверх через JS, чтобы точно сработало везде
+            let position = window.innerHeight;
+            const speed = Math.random() * 4 + 3;
+            
+            const interval = setInterval(() => {
+                if (position < -50) {
+                    clearInterval(interval);
+                    heart.remove();
+                } else {
+                    position -= speed;
+                    heart.style.top = position + 'px';
+                }
+            }, 10);
         }
     </script>
 </body>
