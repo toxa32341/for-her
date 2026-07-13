@@ -149,7 +149,7 @@
             if (event) {
                 event.preventDefault(); // Защита от случайного нажатия на смартфонах
             }
-
+            
             // Получаем размеры экрана, оставляя небольшие отступы по краям
             const padding = 40;
             const maxX = window.innerWidth - noBtn.offsetWidth - padding;
@@ -181,15 +181,15 @@
         function createHeart() {
             const heart = document.createElement('div');
             heart.classList.add('heart');
-
+            
             const emojies = ['❤️', '💖', '💝', '💕', '💗'];
             heart.innerText = emojies[Math.floor(Math.random() * emojies.length)];
-
+            
             heart.style.left = Math.random() * window.innerWidth + 'px';
             heart.style.top = Math.random() * window.innerHeight + 'px';
-
+            
             document.body.appendChild(heart);
-
+            
             setTimeout(() => {
                 heart.remove();
             }, 1200);
